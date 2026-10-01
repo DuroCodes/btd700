@@ -2,6 +2,8 @@
 
 webhid-based browser controls for the sennheiser btd 700.
 
+![screenshot](./screenshot.png)
+
 ## setup
 
 ```bash
