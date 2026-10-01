@@ -1,0 +1,322 @@
+---
+
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>BTD 700</title>
+	</head>
+	<body>
+		<main>
+			<header>
+				<div>
+					<h1>BTD 700</h1>
+					<p id="status">Connect the dongle.</p>
+					<p id="link-state" hidden></p>
+					<p id="firmware" hidden></p>
+				</div>
+				<button id="connect" type="button">Connect</button>
+				<button id="disconnect" type="button" hidden>Disconnect</button>
+			</header>
+
+			<section id="commands" hidden>
+				<div class="modes" role="group" aria-label="Audio link">
+					<button type="button" data-mode="0">Standard</button>
+					<button type="button" data-mode="1">Gaming</button>
+					<button type="button" data-mode="2">Broadcast</button>
+				</div>
+
+				<div id="link-properties" class="fields">
+					<div class="field">
+						<span>Audio quality</span>
+						<span id="audio-quality">—</span>
+					</div>
+					<label class="field">
+						<span>Transport</span>
+						<select id="transport">
+							<option value="1">BT Classic</option>
+							<option value="2">LE Audio</option>
+							<option value="3">Multipoint</option>
+						</select>
+					</label>
+					<label class="field">
+						<span>Codec</span>
+						<select id="codec"></select>
+					</label>
+				</div>
+
+				<div id="broadcast-properties" class="fields" hidden>
+					<label class="field">
+						<span>Audio quality</span>
+						<select id="broadcast-quality">
+							<option value="2">High quality, 48 kHz</option>
+							<option value="1">Standard, 24 kHz</option>
+							<option value="0">Standard, 16 kHz</option>
+						</select>
+					</label>
+					<label class="field">
+						<span>Name</span>
+						<input id="broadcast-name" type="text" maxlength="32" autocomplete="off" spellcheck="false" />
+					</label>
+					<label class="field">
+						<span>Audience</span>
+						<select id="broadcast-audience">
+							<option value="1">Public</option>
+							<option value="0">Private</option>
+						</select>
+					</label>
+					<label class="field">
+						<span>Password</span>
+						<input id="broadcast-password" type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="None" />
+					</label>
+					<div class="field action">
+						<span>Encryption follows the password.</span>
+						<button id="save-broadcast" type="button">Save</button>
+					</div>
+				</div>
+
+				<p id="result"></p>
+				<select id="report" hidden></select>
+			</section>
+
+			<details>
+				<summary>Log</summary>
+				<p id="device"></p>
+				<pre id="collections"></pre>
+				<pre id="log"></pre>
+			</details>
+		</main>
+	</body>
+</html>
+
+<style>
+	:root {
+		color-scheme: dark;
+		color: #f3f3f1;
+		background: #101010;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		line-height: 1.4;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		background: #101010;
+	}
+
+	main {
+		max-width: 38rem;
+		margin: 0 auto;
+		padding: 4.5rem 1.5rem 5rem;
+	}
+
+	header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1.5rem;
+	}
+
+	h1,
+	p {
+		margin: 0;
+	}
+
+	h1 {
+		font-size: 2.6rem;
+		font-weight: 560;
+		letter-spacing: -0.045em;
+		line-height: 1;
+	}
+
+	#status,
+	#firmware,
+	#link-state {
+		margin-top: 0.7rem;
+		color: #8f8f8b;
+	}
+
+	#link-state {
+		color: #f3f3f1;
+		font-size: 1.05rem;
+	}
+
+	button,
+	select,
+	input {
+		font: inherit;
+		color: inherit;
+	}
+
+	header button,
+	.action button {
+		border: 0;
+		background: transparent;
+		padding: 0.2rem 0;
+		cursor: pointer;
+	}
+
+	header button {
+		margin-top: 0.35rem;
+		color: #f3f3f1;
+	}
+
+	#disconnect {
+		color: #8f8f8b;
+	}
+
+	button:disabled {
+		cursor: default;
+		opacity: 0.35;
+	}
+
+	.modes {
+		display: flex;
+		gap: 1.5rem;
+		margin: 3rem 0 0.5rem;
+	}
+
+	.modes button {
+		border: 0;
+		border-bottom: 1px solid transparent;
+		background: transparent;
+		padding: 0 0 0.4rem;
+		color: #6e6e6a;
+		cursor: pointer;
+	}
+
+	.modes button[aria-pressed="true"] {
+		color: #f3f3f1;
+		border-bottom-color: #f3f3f1;
+	}
+
+	.fields {
+		margin-top: 1.25rem;
+	}
+
+	.field {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		min-height: 3.25rem;
+		border-top: 1px solid #2a2a28;
+	}
+
+	.field > span:first-child {
+		font-weight: 560;
+	}
+
+	.field > span:last-child,
+	.field select,
+	.field input {
+		color: #c9c9c4;
+		text-align: right;
+	}
+
+	.field select,
+	.field input {
+		width: min(16rem, 58%);
+		border: 0;
+		background: transparent;
+		padding: 0.4rem 0;
+	}
+
+	.field select {
+		cursor: pointer;
+		appearance: none;
+		background-image: linear-gradient(45deg, transparent 50%, #8f8f8b 50%), linear-gradient(135deg, #8f8f8b 50%, transparent 50%);
+		background-position: calc(100% - 5px) 55%, calc(100% - 1px) 55%;
+		background-size: 4px 4px, 4px 4px;
+		background-repeat: no-repeat;
+		padding-right: 0.9rem;
+	}
+
+	.field input:focus,
+	.field select:focus,
+	button:focus-visible {
+		outline: none;
+	}
+
+	.field input::placeholder {
+		color: #6e6e6a;
+	}
+
+	.field input:focus,
+	.field select:focus {
+		color: #f3f3f1;
+	}
+
+	.field option {
+		background: #101010;
+		color: #f3f3f1;
+	}
+
+	.action span {
+		font-weight: 400;
+		color: #8f8f8b;
+	}
+
+	#result {
+		min-height: 1.4rem;
+		margin-top: 1.25rem;
+		color: #8f8f8b;
+	}
+
+	details {
+		margin-top: 4rem;
+		color: #8f8f8b;
+	}
+
+	summary {
+		cursor: pointer;
+		width: max-content;
+	}
+
+	#device {
+		margin-top: 1rem;
+	}
+
+	pre {
+		margin: 0.8rem 0 0;
+		overflow: auto;
+		white-space: pre-wrap;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.75rem;
+		line-height: 1.5;
+		color: #c9c9c4;
+	}
+
+	#log {
+		max-height: 16rem;
+	}
+
+	[hidden] {
+		display: none !important;
+	}
+
+	@media (max-width: 640px) {
+		main {
+			padding-top: 2.5rem;
+		}
+
+		h1 {
+			font-size: 2.1rem;
+		}
+
+		.modes {
+			gap: 1rem;
+		}
+	}
+</style>
+
+<script>
+	import { start } from "../scripts/panel";
+	start();
+</script>
